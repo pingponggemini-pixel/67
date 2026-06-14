@@ -1,12 +1,9 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🌍 全球國家總點擊戰！67 狂熱大亂鬥 🌍</title>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    
+    <title>🌍 67 萬國點擊大賽：究極黃金舒壓版 🌍</title>
     <style>
         * {
             margin: 0; padding: 0; box-sizing: border-box;
@@ -26,7 +23,7 @@
         }
         .login-box {
             text-align: center; background: #111122; padding: 40px;
-            border-radius: 15px; border: 2px solid #00ffcc; box-shadow: 0 0 20px #00ffcc;
+            border-radius: 15px; border: 2px solid #ff0055; box-shadow: 0 0 20px #ff0055;
             max-width: 400px; width: 90%;
         }
         .login-box h1 { font-size: 2.2rem; margin-bottom: 20px; color: #ffcc00; text-shadow: 0 0 10px #ffcc00; }
@@ -36,7 +33,7 @@
         }
         .login-box select { text-align-last: center; cursor: pointer; }
         .login-box button {
-            font-size: 1.5rem; padding: 10px 30px; background: #00ffcc; color: black;
+            font-size: 1.5rem; padding: 10px 30px; background: #ff0055; color: white;
             border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px;
         }
 
@@ -53,6 +50,7 @@
         #combo-text {
             position: absolute; top: 100px; right: 30px; font-size: 2.5rem; color: #fff;
             text-shadow: 0 0 10px #ff0055; font-style: italic; opacity: 0; pointer-events: none;
+            transition: transform 0.1s;
         }
 
         /* 排行榜 */
@@ -70,10 +68,11 @@
         .number-67 { position: absolute; pointer-events: none; will-change: transform, opacity; font-weight: 900; }
         
         /* 狂暴震動效果 */
-        .shake { animation: screenShake 0.1s infinite; }
+        .shake { animation: screenShake 0.08s infinite; }
         @keyframes screenShake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            100% { transform: translate(-1px, -2px) rotate(0.5deg); }
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            50% { transform: translate(-1px, -2px) rotate(0.5deg); }
+            100% { transform: translate(1px, 2px) rotate(-0.5deg); }
         }
 
         #game-over-screen {
@@ -87,7 +86,7 @@
 
     <div id="login-overlay">
         <div class="login-box">
-            <h1>🌍 67 全球國家點擊大戰</h1>
+            <h1>🌍 67 萬國點擊大賽</h1>
             <input type="text" id="player-name" placeholder="輸入公開代號..." maxlength="12">
             <select id="player-country">
                 <option value="台灣">🇹🇼 台灣 (Taiwan)</option>
@@ -111,12 +110,12 @@
 
     <div id="country-leaderboard" class="board-panel">
         <h3>🌍 國家總點擊排行榜</h3>
-        <div id="country-board-content">雲端連線中...</div>
+        <div id="country-board-content">載入中...</div>
     </div>
 
     <div id="personal-leaderboard" class="board-panel">
-        <h3>🏆 全球個人前 8 名</h3>
-        <div id="personal-board-content">雲端連線中...</div>
+        <h3>🏆 本地個人前 8 名</h3>
+        <div id="personal-board-content">載入中...</div>
     </div>
 
     <div id="game-over-screen">
@@ -126,11 +125,6 @@
     </div>
 
     <script>
-        // 這裡直接將路徑指向你的 67game 專案資料庫路徑！免除複製 API key 的困擾
-        const config = { databaseURL: "https://67game-default-rtdb.firebaseio.com" };
-        firebase.initializeApp(config);
-        const database = firebase.database();
-        
         let score = 0;
         let combo = 0;
         let comboTimer = null;
@@ -141,8 +135,8 @@
         let playerCountry = "台灣";
         let gameInterval = null;
 
-        // 開始即時監聽雲端存檔
-        listenToLeaderboards();
+        // 初始化排行榜
+        updateLeaderboardsUI();
 
         function startGame() {
             const inputName = document.getElementById('player-name').value.trim();
@@ -169,58 +163,56 @@
             clearInterval(gameInterval);
             document.body.classList.remove('shake');
             document.getElementById('game-over-screen').style.display = 'flex';
-            document.getElementById('final-score-text').innerText = `[${playerCountry}] ${playerName}\n最終得分：${score}\n貢獻點擊數：${clickCountThisGame}`;
+            document.getElementById('final-score-text').innerText = `[${playerCountry}] ${playerName}\n最終得分：${score}\n本次貢獻點擊：${clickCountThisGame} 次`;
             
-            // 真正上傳儲存至雲端資料庫
-            database.ref('personal_leaderboard').push({
-                name: playerName, country: playerCountry, score: score, timestamp: Date.now()
-            });
-            database.ref('country_leaderboard/' + playerCountry).transaction((val) => (val || 0) + clickCountThisGame);
+            // 儲存數據
+            saveData(playerName, playerCountry, score, clickCountThisGame);
+            updateLeaderboardsUI();
         }
 
         function restartGame() { startGame(); }
 
-        // --- 核心震撼噴發玩法（滑鼠多點、鍵盤、Fever金色大數字） ---
+        // --- 核心震撼噴發玩法 ---
         const handleInteraction = (x, y) => {
             if (!gameActive) return;
             clickCountThisGame++;
             combo++;
             
-            // 處理 Combo UI
             const cText = document.getElementById('combo-text');
             cText.innerText = `${combo} COMBO`;
             cText.style.opacity = '1';
+            cText.style.transform = `scale(${1 + Math.min(combo*0.02, 0.5)})`;
             
-            // 觸發 Fever 狂暴震動
-            const isFever = combo >= 15;
+            // 觸發 Fever
+            const isFever = combo >= 12;
             if (isFever) {
                 document.body.classList.add('shake');
                 cText.style.color = '#ffcc00';
                 cText.style.textShadow = '0 0 15px #ff5500';
             }
 
-            // 計算分數
+            // 加分計算 (Fever有加成)
             const basePts = isFever ? 25 : 10;
             score += Math.floor(Math.random() * 20) + basePts;
             document.getElementById('score-board').innerText = `SCORE: ${score}`;
 
             // 噴射數量
-            const count = isFever ? 20 : 6;
+            const count = isFever ? 18 : 6;
             for (let i = 0; i < count; i++) {
-                // Fever時有高機率噴出超大黃金67！
-                const isGolden = isFever && Math.random() > 0.6;
+                const isGolden = isFever && Math.random() > 0.5;
                 create67(x, y, isGolden);
             }
 
-            // Combo 倒數重設
+            // Combo 中斷計時器
             clearTimeout(comboTimer);
             comboTimer = setTimeout(() => {
                 combo = 0;
                 cText.style.opacity = '0';
                 document.body.classList.remove('shake');
-            }, 1200);
+            }, 1000);
         };
 
+        // 事件監聽
         document.addEventListener('mousedown', (e) => {
             if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
                 handleInteraction(e.clientX, e.clientY);
@@ -239,7 +231,7 @@
             if (/^[a-z1-9]$/.test(e.key.toLowerCase())) {
                 const rx = Math.random() * window.innerWidth;
                 const ry = Math.random() * window.innerHeight;
-                handleInteraction(rx, ry); // 鍵盤全畫面引爆
+                handleInteraction(rx, ry); // 鍵盤按下在畫面隨機引爆
             }
         });
 
@@ -247,22 +239,20 @@
             const el = document.createElement('div');
             el.className = 'number-67';
             
-            // 外觀樣式
             if (isGolden) {
-                el.innerText = Math.random() > 0.5 ? '🔥67🔥' : '67';
+                el.innerText = Math.random() > 0.5 ? '🔥67🔥' : '⭐67⭐';
                 el.style.color = '#ffcc00';
                 el.style.textShadow = '0 0 20px #fff, 0 0 30px #ffcc00';
-                el.style.fontSize = `${Math.floor(Math.random() * 40) + 80}px`; // 巨大化 80~120px
+                el.style.fontSize = `${Math.floor(Math.random() * 40) + 75}px`; // 金色巨大化
             } else {
                 el.innerText = '67';
                 const hue = Math.floor(Math.random() * 360);
                 el.style.color = `hsl(${hue}, 100%, 65%)`;
                 el.style.textShadow = `0 0 10px hsl(${hue}, 100%, 65%)`;
-                el.style.fontSize = `${Math.floor(Math.random() * 25) + 24px}`;
+                el.style.fontSize = `${Math.floor(Math.random() * 20) + 24}px`;
             }
             document.body.appendChild(el);
 
-            // 物理運動效果
             const angle = Math.random() * Math.PI * 2;
             const speed = isGolden ? (Math.random() * 15 + 8) : (Math.random() * 12 + 5);
             let velX = Math.cos(angle) * speed;
@@ -270,7 +260,7 @@
             let currX = startX, currY = startY, rot = Math.random() * 360, opacity = 1;
 
             function animate() {
-                currX += velX; currY += velY; velY += 0.35; rot += 6; opacity -= 0.025;
+                currX += velX; currY += velY; velY += 0.38; rot += 6; opacity -= 0.025;
                 el.style.transform = `translate(-50%, -50%) translate(${currX}px, ${currY}px) rotate(${rot}deg)`;
                 el.style.opacity = opacity;
                 if (opacity > 0) requestAnimationFrame(animate); else el.remove();
@@ -278,39 +268,48 @@
             requestAnimationFrame(animate);
         }
 
-        // --- 即時雲端榜單更新 ---
-        function listenToLeaderboards() {
-            // 監聽個人榜
-            database.ref('personal_leaderboard').orderByChild('score').limitToLast(8).on('value', (snapshot) => {
-                const container = document.getElementById('personal-board-content');
-                container.innerHTML = '';
-                let list = [];
-                snapshot.forEach((c) => { list.push(c.val()); });
-                list.reverse();
-                list.forEach((item, i) => {
-                    const row = document.createElement('div');
-                    row.className = 'leaderboard-item';
-                    if(i===0) row.style.color = '#ffcc00';
-                    row.innerHTML = `<span>${i+1}. [${item.country}] ${item.name}</span><span>${item.score}</span>`;
-                    container.appendChild(row);
-                });
+        // --- 排行榜儲存邏輯 (LocalStorage) ---
+        function saveData(name, country, finalScore, clicks) {
+            // 1. 個人榜
+            let pScores = JSON.parse(localStorage.getItem('67_local_p_board')) || [];
+            pScores.push({name, country, score: finalScore});
+            pScores.sort((a,b)=>b.score - a.score);
+            localStorage.setItem('67_local_p_board', JSON.stringify(pScores.slice(0, 8)));
+
+            // 2. 國家榜
+            let cScores = JSON.parse(localStorage.getItem('67_local_c_board')) || { "台灣":0, "日本":0, "美國":0, "韓國":0, "香港":0, "新加坡":0, "其他":0 };
+            cScores[country] = (cScores[country] || 0) + clicks;
+            localStorage.setItem('67_local_c_board', JSON.stringify(cScores));
+        }
+
+        function updateLeaderboardsUI() {
+            // 渲染個人榜
+            const pScores = JSON.parse(localStorage.getItem('67_local_p_board')) || [];
+            const pContainer = document.getElementById('personal-board-content');
+            pContainer.innerHTML = pScores.length === 0 ? '<div style="color:#666;text-align:center;">暫無紀錄</div>' : '';
+            pScores.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'leaderboard-item';
+                if(index === 0) row.style.color = '#ffcc00';
+                row.innerHTML = `<span>${index + 1}. [${item.country}] ${item.name}</span><span>${item.score}</span>`;
+                pContainer.appendChild(row);
             });
 
-            // 監聽國家榜
-            database.ref('country_leaderboard').on('value', (snapshot) => {
-                const container = document.getElementById('country-board-content');
-                container.innerHTML = '';
-                let list = [];
-                snapshot.forEach((c) => { list.push({name: c.key, clicks: c.val()}); });
-                list.sort((a,b) => b.clicks - a.clicks);
-                list.forEach((item, i) => {
-                    const row = document.createElement('div');
-                    row.className = 'leaderboard-item';
-                    if(i===0) row.style.color = '#ff3377';
-                    let f = item.name==='台灣'?'🇹🇼':item.name==='日本'?'🇯🇵':item.name==='美國'?'🇺🇸':item.name==='韓國'?'🇰🇷':item.name==='香港'?'🇭🇰':item.name==='新加坡'?'🇸🇬':'🌐';
-                    row.innerHTML = `<span>${i+1}. ${f} ${item.name}</span><span>${item.clicks} 次</span>`;
-                    container.appendChild(row);
-                });
+            // 渲染國家榜
+            const cScores = JSON.parse(localStorage.getItem('67_local_c_board')) || { "台灣":0, "日本":0, "美國":0, "韓國":0, "香港":0, "新加坡":0, "其他":0 };
+            const cContainer = document.getElementById('country-board-content');
+            cContainer.innerHTML = '';
+            
+            let cArray = Object.keys(cScores).map(key => ({name: key, clicks: cScores[key]}));
+            cArray.sort((a,b)=>b.clicks - a.clicks);
+            
+            cArray.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'leaderboard-item';
+                if(index === 0 && item.clicks > 0) row.style.color = '#ff3377';
+                let f = item.name==='台灣'?'🇹🇼':item.name==='日本'?'🇯🇵':item.name==='美國'?'🇺🇸':item.name==='韓國'?'🇰🇷':item.name==='香港'?'🇭🇰':item.name==='新加坡'?'🇸🇬':'🌐';
+                row.innerHTML = `<span>${index + 1}. ${f} ${item.name}</span><span>${item.clicks} 次</span>`;
+                cContainer.appendChild(row);
             });
         }
     </script>
