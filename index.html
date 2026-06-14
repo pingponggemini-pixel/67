@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>瘋狂周祐慶</title>
+    <title>瘋狂周祐慶67大決鬥</title>
     <style>
         * {
             margin: 0; padding: 0; box-sizing: border-box;
@@ -135,10 +135,9 @@
         let playerCountry = "台灣";
         let gameInterval = null;
         
-        // 核心效能優化：限制畫面上最大特效數量，防止崩潰
         const MAX_ELEMENTS = 80;
 
-        // 網頁一打開，立刻自動載入「上次存檔的名字與排行」
+        // 網頁開啟立刻同步載入存檔
         initGameSavedData();
 
         function initGameSavedData() {
@@ -154,7 +153,6 @@
             if (inputName) playerName = inputName;
             playerCountry = document.getElementById('player-country').value;
             
-            // 存檔玩家的名字和國家，下次進來就不用重新輸入
             localStorage.setItem('67_last_player_name', playerName);
             localStorage.setItem('67_last_player_country', playerCountry);
             
@@ -164,6 +162,9 @@
             score = 0; combo = 0; clickCountThisGame = 0; timeLeft = 30; gameActive = true;
             document.getElementById('score-board').innerText = `SCORE: ${score}`;
             document.getElementById('timer-board').innerText = `TIME: ${timeLeft}s`;
+
+            // 確保一開始就先刷新一次榜單
+            updateLeaderboardsUI();
 
             clearInterval(gameInterval);
             gameInterval = setInterval(() => {
@@ -180,14 +181,18 @@
             document.getElementById('game-over-screen').style.display = 'flex';
             document.getElementById('final-score-text').innerText = `[${playerCountry}] ${playerName}\n最終得分：${score}\n本次貢獻點擊：${clickCountThisGame} 次`;
             
-            // 儲存最新的分數與點擊數據（永久本地存檔）
+            // 點擊結束立刻執行強制存檔
             saveData(playerName, playerCountry, score, clickCountThisGame);
             updateLeaderboardsUI();
         }
 
-        function restartGame() { startGame(); }
+        function restartGame() {
+            // 在點擊再戰一場時，也強制刷新榜單
+            updateLeaderboardsUI();
+            startGame();
+        }
 
-        // --- 核心噴發玩法 (已優化數量，絕不卡死) ---
+        // --- 核心噴發玩法 ---
         const handleInteraction = (x, y) => {
             if (!gameActive) return;
             clickCountThisGame++;
@@ -209,7 +214,6 @@
             score += Math.floor(Math.random() * 20) + basePts;
             document.getElementById('score-board').innerText = `SCORE: ${score}`;
 
-            // 優化後的噴射數量：Fever時噴12個，平常噴4個，確保流暢
             const count = isFever ? 12 : 4;
             for (let i = 0; i < count; i++) {
                 const isGolden = isFever && Math.random() > 0.5;
@@ -224,7 +228,6 @@
             }, 1000);
         };
 
-        // 滑鼠與觸控監聽
         document.addEventListener('mousedown', (e) => {
             if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
                 handleInteraction(e.clientX, e.clientY);
@@ -238,7 +241,6 @@
             }
         });
 
-        // 鍵盤彈鋼琴監聽
         document.addEventListener('keydown', (e) => {
             if (!gameActive) return;
             if (/^[a-z1-9]$/.test(e.key.toLowerCase())) {
@@ -249,7 +251,6 @@
         });
 
         function create67(startX, startY, isGolden = false) {
-            // 防卡死機制：如果螢幕上數字太多，就把舊的先刪掉
             const existingElements = document.getElementsByClassName('number-67');
             if (existingElements.length > MAX_ELEMENTS) {
                 existingElements[0].remove();
@@ -262,7 +263,7 @@
                 el.innerText = Math.random() > 0.5 ? '🔥67🔥' : '⭐67⭐';
                 el.style.color = '#ffcc00';
                 el.style.textShadow = '0 0 20px #fff, 0 0 30px #ffcc00';
-                el.style.fontSize = `${Math.floor(Math.random() * 30) + 70}px`; // 依然巨大，但體積微調優化
+                el.style.fontSize = `${Math.floor(Math.random() * 30) + 70}px`;
             } else {
                 el.innerText = '67';
                 const hue = Math.floor(Math.random() * 360);
@@ -291,22 +292,19 @@
             requestAnimationFrame(animate);
         }
 
-        // --- 真正的永久儲存邏輯 (LocalStorage) ---
+        // --- 存檔更新 ---
         function saveData(name, country, finalScore, clicks) {
-            // 1. 讀取並儲存個人榜
             let pScores = JSON.parse(localStorage.getItem('67_local_p_board')) || [];
             pScores.push({name, country, score: finalScore});
             pScores.sort((a,b)=>b.score - a.score);
             localStorage.setItem('67_local_p_board', JSON.stringify(pScores.slice(0, 8)));
 
-            // 2. 讀取並儲存國家榜
             let cScores = JSON.parse(localStorage.getItem('67_local_c_board')) || { "台灣":0, "日本":0, "美國":0, "韓國":0, "香港":0, "新加坡":0, "其他":0 };
             cScores[country] = (cScores[country] || 0) + clicks;
             localStorage.setItem('67_local_c_board', JSON.stringify(cScores));
         }
 
         function updateLeaderboardsUI() {
-            // 渲染個人榜
             const pScores = JSON.parse(localStorage.getItem('67_local_p_board')) || [];
             const pContainer = document.getElementById('personal-board-content');
             pContainer.innerHTML = pScores.length === 0 ? '<div style="color:#666;text-align:center;">暫無紀錄</div>' : '';
@@ -318,7 +316,6 @@
                 pContainer.appendChild(row);
             });
 
-            // 渲染國家榜
             const cScores = JSON.parse(localStorage.getItem('67_local_c_board')) || { "台灣":0, "日本":0, "美國":0, "韓國":0, "香港":0, "新加坡":0, "其他":0 };
             const cContainer = document.getElementById('country-board-content');
             cContainer.innerHTML = '';
