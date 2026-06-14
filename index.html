@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>瘋狂周祐慶產生器</title>
+    <title>周祐慶大亂鬥！</title>
     <style>
         * {
             margin: 0;
@@ -13,107 +13,243 @@
         body {
             width: 100vw;
             height: 100vh;
-            background-color: #0c0c14; /* 更深邃的夜空藍 */
+            background-color: #05050a;
             overflow: hidden;
             position: relative;
             user-select: none;
             cursor: pointer;
+            font-family: 'Impact', 'Arial Black', sans-serif;
         }
+        
         /* 提示字 */
         .tip {
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #444455;
-            font-family: sans-serif;
-            font-size: 1.5rem;
-            font-weight: bold;
+            color: #333344;
+            font-size: 1.8rem;
             letter-spacing: 2px;
             pointer-events: none;
             text-align: center;
+            animation: breathe 2s infinite ease-in-out;
         }
-        /* 升級版 67 樣式 */
+        @keyframes breathe {
+            0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.95); }
+            50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        /* 連擊計數器 */
+        #combo-container {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            text-align: right;
+            pointer-events: none;
+        }
+        #combo-text {
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055;
+            font-style: italic;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: transform 0.1s ease-out, opacity 0.2s;
+        }
+        #fever-status {
+            font-size: 1.2rem;
+            color: #ffcc00;
+            text-shadow: 0 0 5px #ffcc00;
+            font-weight: bold;
+            visibility: hidden;
+            animation: flash 0.5s infinite linear;
+        }
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* 數字 67 基礎樣式 */
         .number-67 {
             position: absolute;
-            font-weight: 900; /* 讓字體更粗更明顯 */
-            font-family: 'Impact', 'Arial Black', sans-serif;
             pointer-events: none;
-            will-change: transform, opacity; /* 優化效能 */
+            will-change: transform, opacity;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 點擊波紋 */
+        .shockwave {
+            position: absolute;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            background: transparent;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple 0.4s ease-out forwards;
+        }
+        @keyframes ripple {
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                border-color: transparent;
+                width: 200px;
+                height: 200px;
+            }
+        }
+
+        /* 狂暴模式背景震動 */
+        .shake {
+            animation: screenShake 0.1s infinite;
+        }
+        @keyframes screenShake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            100% { transform: translate(-1px, -2px) rotate(0.5deg); }
         }
     </style>
 </head>
 <body>
 
-    <div class="tip">用力點擊畫面試試看！</div>
+    <div class="tip">快點擊！衝高 Combo 進入狂暴模式！</div>
+    
+    <div id="combo-container">
+        <div id="combo-text">0 COMBO</div>
+        <div id="fever-status">🔥 FEVER TIME 🔥</div>
+    </div>
 
     <script>
+        let combo = 0;
+        let comboTimer = null;
+        const comboText = document.getElementById('combo-text');
+        const feverStatus = document.getElementById('fever-status');
+
         document.addEventListener('click', (e) => {
-            // 移除提示字
+            // 移除提示
             const tip = document.querySelector('.tip');
             if (tip) tip.remove();
 
-            // 隨機決定這次噴出的數量（5 到 15 個，更有豐富感）
-            const count = Math.floor(Math.random() * 11) + 5; 
+            // 1. 增加 Combo
+            combo++;
+            updateComboUI();
+
+            // 2. 產生點擊波紋
+            createShockwave(e.clientX, e.clientY);
+
+            // 3. 根據是否處於狂暴模式決定數量
+            const isFever = combo >= 15;
+            const baseCount = isFever ? 25 : 6; // 狂暴模式一次噴25個數字
+            const count = Math.floor(Math.random() * 6) + baseCount;
+
+            if (isFever) {
+                document.body.classList.add('shake');
+            }
 
             for (let i = 0; i < count; i++) {
-                createExploding67(e.clientX, e.clientY);
+                // 有機率產生超級大黃金67
+                const isGolden = isFever && Math.random() > 0.7;
+                create67(e.clientX, e.clientY, isGolden);
             }
+
+            // 4. 設定 Combo 倒數計時（1.2秒沒點就重設）
+            clearTimeout(comboTimer);
+            comboTimer = setTimeout(() => {
+                combo = 0;
+                comboText.style.opacity = '0';
+                feverStatus.style.visibility = 'hidden';
+                document.body.classList.remove('shake');
+            }, 1200);
         });
 
-        function createExploding67(startX, startY) {
+        function updateComboUI() {
+            comboText.innerText = `${combo} COMBO`;
+            comboText.style.opacity = '1';
+            // 每次點擊放大一下
+            comboText.style.transform = 'scale(1.3) skewX(-10deg)';
+            setTimeout(() => {
+                comboText.style.transform = 'scale(1) skewX(-10deg)';
+            }, 50);
+
+            if (combo >= 15) {
+                feverStatus.style.visibility = 'visible';
+                comboText.style.color = '#ffcc00';
+                comboText.style.textShadow = '0 0 15px #ff5500, 0 0 30px #ffcc00';
+            } else {
+                comboText.style.color = '#fff';
+                comboText.style.textShadow = '0 0 10px #ff0055, 0 0 20px #ff0055';
+            }
+        }
+
+        function createShockwave(x, y) {
+            const wave = document.createElement('div');
+            wave.className = 'shockwave';
+            wave.style.left = `${x}px`;
+            wave.style.top = `${y}px`;
+            wave.style.width = '10px';
+            wave.style.height = '10px';
+            if (combo >= 15) wave.style.borderColor = '#ff3300';
+            document.body.appendChild(wave);
+            setTimeout(() => wave.remove(), 400);
+        }
+
+        function create67(startX, startY, isGolden) {
             const el = document.createElement('div');
             el.className = 'number-67';
-            el.innerText = '67';
+            
+            // 隨機加點搞笑表情
+            const hasEyes = Math.random() > 0.85;
+            el.innerHTML = hasEyes ? '👁️67👁️' : '67';
 
-            // 1. 隨機鮮豔顏色
-            const hue = Math.floor(Math.random() * 360);
-            el.style.color = `hsl(${hue}, 100%, 65%)`;
-            // 加點發光效果
-            el.style.textShadow = `0 0 10px hsl(${hue}, 100%, 65%)`;
-
-            // 2. 隨機大小（24px 到 70px）
-            const size = Math.floor(Math.random() * 47) + 24;
+            // 1. 顏色與發光設定
+            let hue, size;
+            if (isGolden) {
+                el.style.color = '#ffcc00';
+                el.style.textShadow = '0 0 20px #fff, 0 0 30px #ffcc00';
+                size = Math.floor(Math.random() * 40) + 80; // 黃金版超大 (80px~120px)
+            } else {
+                hue = Math.floor(Math.random() * 360);
+                el.style.color = `hsl(${hue}, 100%, 65%)`;
+                el.style.textShadow = `0 0 10px hsl(${hue}, 100%, 65%)`;
+                size = Math.floor(Math.random() * 40) + 24; // 普通版 (24px~64px)
+            }
             el.style.fontSize = `${size}px`;
 
             document.body.appendChild(el);
 
-            // 3. 物理模擬：給予隨機的初始速度與角度
-            const angle = Math.random() * Math.PI * 2; // 360度隨機方向
-            const speed = Math.random() * 8 + 4;       // 隨機噴射速度
+            // 2. 物理噴射速度 (狂暴模式下噴得更遠、更快)
+            const speedMultiplier = combo >= 15 ? 1.5 : 1;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = (Math.random() * 10 + 5) * speedMultiplier;
             
             let velocityX = Math.cos(angle) * speed;
-            let velocityY = Math.sin(angle) * speed - 2; // 稍微向上噴一點
+            let velocityY = Math.sin(angle) * speed - 3;
             let currentX = startX;
             let currentY = startY;
             let rotation = Math.random() * 360;
-            const rotationSpeed = (Math.random() - 0.5) * 10; // 旋轉速度
+            const rotationSpeed = (Math.random() - 0.5) * 20;
             
-            const gravity = 0.3; // 重力加速度
+            const gravity = 0.35;
             let opacity = 1;
 
-            // 使用 JavaScript 的 requestAnimationFrame 來做流暢的物理動畫
-            function updateAnimation() {
-                // 套用速度
+            // 動畫循環
+            function update() {
                 currentX += velocityX;
                 currentY += velocityY;
-                velocityY += gravity; // 重力往下灌
+                velocityY += gravity;
                 rotation += rotationSpeed;
-                opacity -= 0.02; // 逐漸淡出
+                opacity -= 0.025; // 消散速度
 
-                // 更新位置與旋轉
                 el.style.transform = `translate(-50%, -50%) translate(${currentX}px, ${currentY}px) rotate(${rotation}deg)`;
                 el.style.opacity = opacity;
 
                 if (opacity > 0) {
-                    requestAnimationFrame(updateAnimation);
+                    requestAnimationFrame(update);
                 } else {
-                    el.remove(); // 完全透明後刪除
+                    el.remove();
                 }
             }
 
-            // 啟動動畫
-            requestAnimationFrame(updateAnimation);
+            requestAnimationFrame(update);
         }
     </script>
 </body>
