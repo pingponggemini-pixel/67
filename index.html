@@ -2,254 +2,359 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>周祐慶大亂鬥！</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>究極周祐慶大亂鬥</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: manipulation; /* 優化手機連點延遲 */
         }
         body {
             width: 100vw;
             height: 100vh;
-            background-color: #05050a;
+            background-color: #030308;
             overflow: hidden;
             position: relative;
             user-select: none;
-            cursor: pointer;
             font-family: 'Impact', 'Arial Black', sans-serif;
-        }
-        
-        /* 提示字 */
-        .tip {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #333344;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-            pointer-events: none;
-            text-align: center;
-            animation: breathe 2s infinite ease-in-out;
-        }
-        @keyframes breathe {
-            0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.95); }
-            50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
-        }
-
-        /* 連擊計數器 */
-        #combo-container {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            text-align: right;
-            pointer-events: none;
-        }
-        #combo-text {
-            font-size: 3rem;
             color: #fff;
-            text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055;
-            font-style: italic;
-            opacity: 0;
-            transform: scale(0.5);
-            transition: transform 0.1s ease-out, opacity 0.2s;
-        }
-        #fever-status {
-            font-size: 1.2rem;
-            color: #ffcc00;
-            text-shadow: 0 0 5px #ffcc00;
-            font-weight: bold;
-            visibility: hidden;
-            animation: flash 0.5s infinite linear;
-        }
-        @keyframes flash {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
         }
 
-        /* 數字 67 基礎樣式 */
-        .number-67 {
-            position: absolute;
-            pointer-events: none;
-            will-change: transform, opacity;
+        /* 登入視窗 */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 15, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            z-index: 100;
+        }
+        .login-box {
+            text-align: center;
+            background: #111122;
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid #ff0055;
+            box-shadow: 0 0 20px #ff0055;
+        }
+        .login-box h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ffcc00;
+            text-shadow: 0 0 10px #ffcc00;
+        }
+        .login-box input {
+            font-size: 1.5rem;
+            padding: 10px;
+            width: 250px;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .login-box button {
+            font-size: 1.5rem;
+            padding: 10px 30px;
+            background: #ff0055;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .login-box button:hover {
+            background: #ff3377;
+            transform: scale(1.05);
         }
 
-        /* 點擊波紋 */
-        .shockwave {
+        /* 遊戲介面 (UI) */
+        #ui-layer {
             position: absolute;
-            border: 4px solid rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            background: transparent;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
             pointer-events: none;
-            transform: translate(-50%, -50%) scale(0);
-            animation: ripple 0.4s ease-out forwards;
+            z-index: 10;
         }
-        @keyframes ripple {
-            to {
-                transform: translate(-50%, -50%) scale(1);
-                border-color: transparent;
-                width: 200px;
-                height: 200px;
-            }
+        .ui-box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+        #score-board { font-size: 2rem; color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
+        #timer-board { font-size: 2rem; color: #ff3333; text-shadow: 0 0 10px #ff3333; }
+        
+        /* 排行榜 */
+        #leaderboard {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 250px;
+            background: rgba(10, 10, 25, 0.8);
+            border: 1px solid #ff0055;
+            border-radius: 10px;
+            padding: 15px;
+            pointer-events: none;
+        }
+        #leaderboard h3 {
+            text-align: center;
+            color: #ffcc00;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 1rem;
+            font-family: sans-serif;
         }
 
-        /* 狂暴模式背景震動 */
-        .shake {
-            animation: screenShake 0.1s infinite;
+        /* 遊戲中的 67 元素 */
+        .number-67 {
+            position: absolute;
+            pointer-events: none;
+            will-change: transform, opacity;
+            font-weight: 900;
         }
-        @keyframes screenShake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            100% { transform: translate(-1px, -2px) rotate(0.5deg); }
+
+        /* 遊戲結束畫面 */
+        #game-over-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 90;
         }
     </style>
 </head>
 <body>
 
-    <div class="tip">快點擊！衝高 Combo 進入狂暴模式！</div>
-    
-    <div id="combo-container">
-        <div id="combo-text">0 COMBO</div>
-        <div id="fever-status">🔥 FEVER TIME 🔥</div>
+    <div id="login-overlay">
+        <div class="login-box">
+            <h1>67 狂熱挑戰賽</h1>
+            <input type="text" id="player-name" placeholder="輸入你的大名..." maxlength="10">
+            <br>
+            <button onclick="startGame()">開始遊戲</button>
+        </div>
+    </div>
+
+    <div id="ui-layer">
+        <div class="ui-box" id="score-board">SCORE: 0</div>
+        <div class="ui-box" id="timer-board">TIME: 30s</div>
+    </div>
+
+    <div id="leaderboard">
+        <h3>🏆 當前本地前五名</h3>
+        <div id="leaderboard-content"></div>
+    </div>
+
+    <div id="game-over-screen">
+        <h1 style="font-size: 4rem; color: #ff0055; margin-bottom: 20px;">TIME UP!</h1>
+        <p id="final-score-text" style="font-size: 2rem; margin-bottom: 30px;"></p>
+        <button onclick="restartGame()" style="font-size: 1.5rem; padding: 10px 30px; background: #00ffcc; color: black; border:none; font-weight:bold; cursor:pointer; border-radius:5px;">再玩一次</button>
     </div>
 
     <script>
-        let combo = 0;
-        let comboTimer = null;
-        const comboText = document.getElementById('combo-text');
-        const feverStatus = document.getElementById('fever-status');
+        let score = 0;
+        let timeLeft = 30;
+        let gameActive = false;
+        let playerName = "Anonymous";
+        let gameInterval = null;
 
-        document.addEventListener('click', (e) => {
-            // 移除提示
-            const tip = document.querySelector('.tip');
-            if (tip) tip.remove();
+        // 初始化載入排行榜
+        updateLeaderboardUI();
 
-            // 1. 增加 Combo
-            combo++;
-            updateComboUI();
+        function startGame() {
+            const inputName = document.getElementById('player-name').value.trim();
+            if (inputName) playerName = inputName;
+            
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('game-over-screen').style.display = 'none';
+            
+            // 重設數值
+            score = 0;
+            timeLeft = 30;
+            gameActive = true;
+            document.getElementById('score-board').innerText = `SCORE: ${score}`;
+            document.getElementById('timer-board').innerText = `TIME: ${timeLeft}s`;
 
-            // 2. 產生點擊波紋
-            createShockwave(e.clientX, e.clientY);
+            // 啟動計時器
+            clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-board').innerText = `TIME: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
 
-            // 3. 根據是否處於狂暴模式決定數量
-            const isFever = combo >= 15;
-            const baseCount = isFever ? 25 : 6; // 狂暴模式一次噴25個數字
-            const count = Math.floor(Math.random() * 6) + baseCount;
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameInterval);
+            document.getElementById('game-over-screen').style.display = 'flex';
+            document.getElementById('final-score-text').innerText = `${playerName} 的最終得分：${score}`;
+            
+            // 儲存分數到排行榜
+            saveScore(playerName, score);
+            updateLeaderboardUI();
+        }
 
-            if (isFever) {
-                document.body.classList.add('shake');
-            }
+        function restartGame() {
+            startGame();
+        }
 
+        // --- 核心互動邏輯 ---
+
+        // 1. 滑鼠點擊 & 手機多點觸控支援
+        const handleInteraction = (x, y) => {
+            if (!gameActive) return;
+
+            // 每次點擊增加隨機分數 (10~30分)
+            const pts = Math.floor(Math.random() * 21) + 10;
+            score += pts;
+            document.getElementById('score-board').innerText = `SCORE: ${score}`;
+
+            // 隨機噴出 5~10 個 67
+            const count = Math.floor(Math.random() * 6) + 5;
             for (let i = 0; i < count; i++) {
-                // 有機率產生超級大黃金67
-                const isGolden = isFever && Math.random() > 0.7;
-                create67(e.clientX, e.clientY, isGolden);
+                create67(x, y);
             }
+        };
 
-            // 4. 設定 Combo 倒數計時（1.2秒沒點就重設）
-            clearTimeout(comboTimer);
-            comboTimer = setTimeout(() => {
-                combo = 0;
-                comboText.style.opacity = '0';
-                feverStatus.style.visibility = 'hidden';
-                document.body.classList.remove('shake');
-            }, 1200);
+        // 滑鼠事件
+        document.addEventListener('mousedown', (e) => {
+            if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                handleInteraction(e.clientX, e.clientY);
+            }
         });
 
-        function updateComboUI() {
-            comboText.innerText = `${combo} COMBO`;
-            comboText.style.opacity = '1';
-            // 每次點擊放大一下
-            comboText.style.transform = 'scale(1.3) skewX(-10deg)';
-            setTimeout(() => {
-                comboText.style.transform = 'scale(1) skewX(-10deg)';
-            }, 50);
-
-            if (combo >= 15) {
-                feverStatus.style.visibility = 'visible';
-                comboText.style.color = '#ffcc00';
-                comboText.style.textShadow = '0 0 15px #ff5500, 0 0 30px #ffcc00';
-            } else {
-                comboText.style.color = '#fff';
-                comboText.style.textShadow = '0 0 10px #ff0055, 0 0 20px #ff0055';
+        // 觸控事件 (支援多指同時按不同地方)
+        document.addEventListener('touchstart', (e) => {
+            if (!gameActive) return;
+            for (let i = 0; i < e.touches.length; i++) {
+                handleInteraction(e.touches[i].clientX, e.touches[i].clientY);
             }
-        }
+        });
 
-        function createShockwave(x, y) {
-            const wave = document.createElement('div');
-            wave.className = 'shockwave';
-            wave.style.left = `${x}px`;
-            wave.style.top = `${y}px`;
-            wave.style.width = '10px';
-            wave.style.height = '10px';
-            if (combo >= 15) wave.style.borderColor = '#ff3300';
-            document.body.appendChild(wave);
-            setTimeout(() => wave.remove(), 400);
-        }
+        // 2. 鍵盤事件支援 (A-Z, 1-9)
+        document.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+            
+            // 限制只有 1-9 和 A-Z 會有反應
+            const key = e.key.toLowerCase();
+            const isValidKey = /^[a-z1-9]$/.test(key);
 
-        function create67(startX, startY, isGolden) {
+            if (isValidKey) {
+                // 鍵盤按下時，在畫面亂數位置引爆！
+                const randomX = Math.random() * window.innerWidth;
+                const randomY = Math.random() * window.innerHeight;
+                
+                // 鍵盤流有額外加分！
+                score += 15;
+                document.getElementById('score-board').innerText = `SCORE: ${score}`;
+
+                // 噴出更多、更大的數字
+                for (let i = 0; i < 8; i++) {
+                    create67(randomX, randomY, true); // true 代表是鍵盤觸發的狂暴版
+                }
+            }
+        });
+
+        // 產生 67 的函式
+        function create67(startX, startY, isKeyboard = false) {
             const el = document.createElement('div');
             el.className = 'number-67';
             
-            // 隨機加點搞笑表情
-            const hasEyes = Math.random() > 0.85;
-            el.innerHTML = hasEyes ? '👁️67👁️' : '67';
+            // 隨機趣味外觀
+            const rand = Math.random();
+            if (rand > 0.95) el.innerText = '🔥67🔥';
+            else if (rand > 0.90) el.innerText = '⭐67⭐';
+            else el.innerText = '67';
 
-            // 1. 顏色與發光設定
-            let hue, size;
-            if (isGolden) {
-                el.style.color = '#ffcc00';
-                el.style.textShadow = '0 0 20px #fff, 0 0 30px #ffcc00';
-                size = Math.floor(Math.random() * 40) + 80; // 黃金版超大 (80px~120px)
-            } else {
-                hue = Math.floor(Math.random() * 360);
-                el.style.color = `hsl(${hue}, 100%, 65%)`;
-                el.style.textShadow = `0 0 10px hsl(${hue}, 100%, 65%)`;
-                size = Math.floor(Math.random() * 40) + 24; // 普通版 (24px~64px)
-            }
+            // 顏色
+            const hue = Math.floor(Math.random() * 360);
+            el.style.color = `hsl(${hue}, 100%, 65%)`;
+            el.style.textShadow = `0 0 10px hsl(${hue}, 100%, 65%)`;
+
+            // 大小 (鍵盤按出來的比較大)
+            const baseSize = isKeyboard ? 50 : 24;
+            const size = Math.floor(Math.random() * 30) + baseSize;
             el.style.fontSize = `${size}px`;
 
             document.body.appendChild(el);
 
-            // 2. 物理噴射速度 (狂暴模式下噴得更遠、更快)
-            const speedMultiplier = combo >= 15 ? 1.5 : 1;
+            // 物理運動
             const angle = Math.random() * Math.PI * 2;
-            const speed = (Math.random() * 10 + 5) * speedMultiplier;
-            
-            let velocityX = Math.cos(angle) * speed;
-            let velocityY = Math.sin(angle) * speed - 3;
-            let currentX = startX;
-            let currentY = startY;
-            let rotation = Math.random() * 360;
-            const rotationSpeed = (Math.random() - 0.5) * 20;
-            
-            const gravity = 0.35;
+            const speed = Math.random() * 12 + 6;
+            let velX = Math.cos(angle) * speed;
+            let velY = Math.sin(angle) * speed - 4;
+            let currX = startX;
+            let currY = startY;
+            let rot = Math.random() * 360;
             let opacity = 1;
 
-            // 動畫循環
-            function update() {
-                currentX += velocityX;
-                currentY += velocityY;
-                velocityY += gravity;
-                rotation += rotationSpeed;
-                opacity -= 0.025; // 消散速度
+            function animate() {
+                currX += velX;
+                currY += velY;
+                velY += 0.4; // 重力
+                rot += 5;
+                opacity -= 0.03;
 
-                el.style.transform = `translate(-50%, -50%) translate(${currentX}px, ${currentY}px) rotate(${rotation}deg)`;
+                el.style.transform = `translate(-50%, -50%) translate(${currX}px, ${currY}px) rotate(${rot}deg)`;
                 el.style.opacity = opacity;
 
                 if (opacity > 0) {
-                    requestAnimationFrame(update);
+                    requestAnimationFrame(animate);
                 } else {
                     el.remove();
                 }
             }
+            requestAnimationFrame(animate);
+        }
 
-            requestAnimationFrame(update);
+        // --- 排行榜邏輯 (LocalStorage) ---
+        function saveScore(name, score) {
+            let scores = JSON.parse(localStorage.getItem('67_leaderboard')) || [];
+            scores.push({ name: name, score: score });
+            // 從高到低排序
+            scores.sort((a, b) => b.score - a.score);
+            // 只取前五名
+            scores = scores.slice(0, 5);
+            localStorage.setItem('67_leaderboard', JSON.stringify(scores));
+        }
+
+        function updateLeaderboardUI() {
+            const scores = JSON.parse(localStorage.getItem('67_leaderboard')) || [];
+            const container = document.getElementById('leaderboard-content');
+            container.innerHTML = '';
+            
+            if (scores.length === 0) {
+                container.innerHTML = '<div style="color:#666; font-size:0.9rem; text-align:center;">暫無紀錄</div>';
+                return;
+            }
+
+            scores.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'leaderboard-item';
+                row.innerHTML = `<span>${index + 1}. ${item.name}</span><span>${item.score}分</span>`;
+                if(index === 0) row.style.color = '#ffcc00'; // 第一名金黃色
+                container.appendChild(row);
+            });
         }
     </script>
 </body>
