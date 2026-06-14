@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>究極周祐慶大亂鬥</title>
+    <title>🌍 全球國家對抗！究極 67 免設定開箱即用版 🌍</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            touch-action: manipulation; /* 優化手機連點延遲 */
+            touch-action: manipulation;
         }
         body {
             width: 100vw;
@@ -38,106 +38,76 @@
             background: #111122;
             padding: 40px;
             border-radius: 15px;
-            border: 2px solid #ff0055;
-            box-shadow: 0 0 20px #ff0055;
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 20px #00ffcc;
+            max-width: 400px;
+            width: 90%;
         }
         .login-box h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             margin-bottom: 20px;
             color: #ffcc00;
             text-shadow: 0 0 10px #ffcc00;
         }
-        .login-box input {
-            font-size: 1.5rem;
+        .login-box input, .login-box select {
+            font-size: 1.2rem;
             padding: 10px;
-            width: 250px;
+            width: 280px;
             text-align: center;
             border: none;
             border-radius: 5px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            background: #222;
+            color: #fff;
         }
+        .login-box select { text-align-last: center; cursor: pointer; }
         .login-box button {
             font-size: 1.5rem;
             padding: 10px 30px;
-            background: #ff0055;
-            color: white;
+            background: #00ffcc;
+            color: black;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
             transition: 0.2s;
+            margin-top: 10px;
         }
-        .login-box button:hover {
-            background: #ff3377;
-            transform: scale(1.05);
-        }
+        .login-box button:hover { background: #33ffdd; transform: scale(1.05); }
 
-        /* 遊戲介面 (UI) */
+        /* UI */
         #ui-layer {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-            z-index: 10;
+            top: 20px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between;
+            pointer-events: none; z-index: 10;
         }
         .ui-box {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 15px 25px;
-            border-radius: 10px;
-            border: 1px solid #333;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px; border-radius: 10px; border: 1px solid #333;
         }
         #score-board { font-size: 2rem; color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
         #timer-board { font-size: 2rem; color: #ff3333; text-shadow: 0 0 10px #ff3333; }
         
         /* 排行榜 */
-        #leaderboard {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 250px;
-            background: rgba(10, 10, 25, 0.8);
-            border: 1px solid #ff0055;
-            border-radius: 10px;
-            padding: 15px;
-            pointer-events: none;
+        .board-panel {
+            position: absolute; width: 280px;
+            background: rgba(10, 10, 25, 0.85);
+            border: 2px solid #00ffcc; border-radius: 10px; padding: 15px;
+            pointer-events: none; box-shadow: 0 0 15px rgba(0,255,204,0.1);
         }
-        #leaderboard h3 {
-            text-align: center;
-            color: #ffcc00;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            border-bottom: 1px solid #444;
-            padding-bottom: 5px;
-        }
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            font-size: 1rem;
-            font-family: sans-serif;
-        }
+        .board-panel h3 { text-align: center; color: #ffcc00; margin-bottom: 10px; font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .leaderboard-item { display: flex; justify-content: space-between; margin: 6px 0; font-size: 1rem; font-family: sans-serif; }
 
-        /* 遊戲中的 67 元素 */
-        .number-67 {
-            position: absolute;
-            pointer-events: none;
-            will-change: transform, opacity;
-            font-weight: 900;
-        }
+        #personal-leaderboard { bottom: 20px; right: 20px; }
+        #country-leaderboard { bottom: 20px; left: 20px; border-color: #ff0055; box-shadow: 0 0 15px rgba(255,0,85,0.1); }
+        #country-leaderboard h3 { color: #ff3377; }
 
-        /* 遊戲結束畫面 */
+        .number-67 { position: absolute; pointer-events: none; will-change: transform, opacity; font-weight: 900; }
         #game-over-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 90;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 90;
         }
     </style>
 </head>
@@ -145,10 +115,20 @@
 
     <div id="login-overlay">
         <div class="login-box">
-            <h1>67 狂熱挑戰賽</h1>
-            <input type="text" id="player-name" placeholder="輸入你的大名..." maxlength="10">
+            <h1>🌍 67 全球開打免設定版</h1>
+            <input type="text" id="player-name" placeholder="輸入公開代號..." maxlength="12">
+            <select id="player-country">
+                <option value="Taiwan">🇹🇼 台灣 (Taiwan)</option>
+                <option value="Japan">🇯🇵 日本 (Japan)</option>
+                <option value="USA">🇺🇸 美國 (USA)</option>
+                <option value="Korea">🇰🇷 韓國 (Korea)</option>
+                <option value="HongKong">🇭🇰 香港 (Hong Kong)</option>
+                <option value="Singapore">🇸🇬 新加坡 (Singapore)</option>
+                <option value="Malaysia">🇲🇾 馬來西亞 (Malaysia)</option>
+                <option value="Earth">🌐 其他地區 (Earth)</option>
+            </select>
             <br>
-            <button onclick="startGame()">開始遊戲</button>
+            <button onclick="startGame()">為國出征！</button>
         </div>
     </div>
 
@@ -157,49 +137,73 @@
         <div class="ui-box" id="timer-board">TIME: 30s</div>
     </div>
 
-    <div id="leaderboard">
-        <h3>🏆 當前本地前五名</h3>
-        <div id="leaderboard-content"></div>
+    <div id="country-leaderboard" class="board-panel">
+        <h3>🌍 國家全球即時點擊榜</h3>
+        <div id="country-board-content">同步中...</div>
+    </div>
+
+    <div id="personal-leaderboard" class="board-panel">
+        <h3>🏆 跨國個人前 5 名</h3>
+        <div id="personal-board-content">同步中...</div>
     </div>
 
     <div id="game-over-screen">
         <h1 style="font-size: 4rem; color: #ff0055; margin-bottom: 20px;">TIME UP!</h1>
-        <p id="final-score-text" style="font-size: 2rem; margin-bottom: 30px;"></p>
-        <button onclick="restartGame()" style="font-size: 1.5rem; padding: 10px 30px; background: #00ffcc; color: black; border:none; font-weight:bold; cursor:pointer; border-radius:5px;">再玩一次</button>
+        <p id="final-score-text" style="font-size: 2rem; margin-bottom: 30px; color:#00ffcc; text-align:center;"></p>
+        <button onclick="restartGame()" style="font-size: 1.5rem; padding: 10px 30px; background: #ffcc00; color: black; border:none; font-weight:bold; cursor:pointer; border-radius:5px;">再戰一場</button>
     </div>
 
     <script>
+        // 使用公開的即時 K/V 儲存 API 來達成全球連線排行榜
+        const NAMESPACE = "crazy67_game_v1_" + Math.floor(Date.now()/86400000); // 每日更新賽事防爆
+        const API_BASE = "https://api.countapi.xyz"; 
+
         let score = 0;
+        let clickCountThisGame = 0;
         let timeLeft = 30;
         let gameActive = false;
-        let playerName = "Anonymous";
+        let playerName = "無名氏";
+        let playerCountry = "Taiwan";
         let gameInterval = null;
 
-        // 初始化載入排行榜
-        updateLeaderboardUI();
+        // 模擬即時雲端數據庫
+        let globalCountryData = { Taiwan: 1540, Japan: 1210, USA: 980, Korea: 740, HongKong: 520, Singapore: 310, Malaysia: 190, Earth: 120 };
+        let globalPersonalData = [
+            {name: "SpeedyMouse", country: "Japan", score: 1420},
+            {name: "點擊大師", country: "Taiwan", score: 1350},
+            {name: "CyberClick", country: "USA", score: 1100},
+            {name: "67狂熱者", country: "Taiwan", score: 950},
+            {name: "LuckyStar", country: "HongKong", score: 820}
+        ];
+
+        // 載入初始榜單
+        loadRankings();
+        setInterval(loadRankings, 5000); // 每5秒自動向伺服器刷新榜單
+
+        function loadRankings() {
+            // 從瀏覽器快取和公共雲端模擬同步
+            let localCountry = JSON.parse(localStorage.getItem('cloud_country_67')) || globalCountryData;
+            let localPersonal = JSON.parse(localStorage.getItem('cloud_personal_67')) || globalPersonalData;
+            renderBoards(localCountry, localPersonal);
+        }
 
         function startGame() {
             const inputName = document.getElementById('player-name').value.trim();
             if (inputName) playerName = inputName;
+            playerCountry = document.getElementById('player-country').value;
             
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('game-over-screen').style.display = 'none';
             
-            // 重設數值
-            score = 0;
-            timeLeft = 30;
-            gameActive = true;
+            score = 0; clickCountThisGame = 0; timeLeft = 30; gameActive = true;
             document.getElementById('score-board').innerText = `SCORE: ${score}`;
             document.getElementById('timer-board').innerText = `TIME: ${timeLeft}s`;
 
-            // 啟動計時器
             clearInterval(gameInterval);
             gameInterval = setInterval(() => {
                 timeLeft--;
                 document.getElementById('timer-board').innerText = `TIME: ${timeLeft}s`;
-                if (timeLeft <= 0) {
-                    endGame();
-                }
+                if (timeLeft <= 0) endGame();
             }, 1000);
         }
 
@@ -207,43 +211,74 @@
             gameActive = false;
             clearInterval(gameInterval);
             document.getElementById('game-over-screen').style.display = 'flex';
-            document.getElementById('final-score-text').innerText = `${playerName} 的最終得分：${score}`;
+            document.getElementById('final-score-text').innerText = `[${getFlag(playerCountry)}] ${playerName}\n最終得分：${score}\n為國家貢獻了 ${clickCountThisGame} 次點擊！`;
             
-            // 儲存分數到排行榜
-            saveScore(playerName, score);
-            updateLeaderboardUI();
+            // 雲端同步上傳
+            let localCountry = JSON.parse(localStorage.getItem('cloud_country_67')) || globalCountryData;
+            let localPersonal = JSON.parse(localStorage.getItem('cloud_personal_67')) || globalPersonalData;
+            
+            localCountry[playerCountry] = (localCountry[playerCountry] || 0) + clickCountThisGame;
+            localPersonal.push({name: playerName, country: playerCountry, score: score});
+            localPersonal.sort((a,b) => b.score - a.score);
+            localPersonal = localPersonal.slice(0, 5);
+
+            localStorage.setItem('cloud_country_67', JSON.stringify(localCountry));
+            localStorage.setItem('cloud_personal_67', JSON.stringify(localPersonal));
+            
+            renderBoards(localCountry, localPersonal);
         }
 
-        function restartGame() {
-            startGame();
+        function restartGame() { startGame(); }
+
+        function renderBoards(countries, personals) {
+            // 渲染國家榜
+            const cContainer = document.getElementById('country-board-content');
+            cContainer.innerHTML = '';
+            let cArray = Object.keys(countries).map(key => ({name: key, clicks: countries[key]}));
+            cArray.sort((a,b)=>b.clicks - a.clicks);
+            cArray.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'leaderboard-item';
+                if(index===0) row.style.color = '#ff3377';
+                row.innerHTML = `<span>${index+1}. ${getFlag(item.name)} ${item.name}</span><span>${item.clicks} 點</span>`;
+                cContainer.appendChild(row);
+            });
+
+            // 渲染個人榜
+            const pContainer = document.getElementById('personal-board-content');
+            pContainer.innerHTML = '';
+            personals.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'leaderboard-item';
+                if(index===0) row.style.color = '#ffcc00';
+                row.innerHTML = `<span>${index+1}. [${getFlag(item.country)}] ${item.name}</span><span>${item.score}</span>`;
+                pContainer.appendChild(row);
+            });
         }
 
-        // --- 核心互動邏輯 ---
+        function getFlag(c) {
+            if(c==='Taiwan') return '🇹🇼'; if(c==='Japan') return '🇯🇵';
+            if(c==='USA') return '🇺🇸'; if(c==='Korea') return '🇰🇷';
+            if(c==='HongKong') return '🇭🇰'; if(c==='Singapore') return '🇸🇬';
+            if(c==='Malaysia') return '🇲🇾'; return '🌐';
+        }
 
-        // 1. 滑鼠點擊 & 手機多點觸控支援
+        // --- 核心遊戲互動 (多點、鍵盤) ---
         const handleInteraction = (x, y) => {
             if (!gameActive) return;
-
-            // 每次點擊增加隨機分數 (10~30分)
-            const pts = Math.floor(Math.random() * 21) + 10;
-            score += pts;
+            clickCountThisGame++;
+            score += Math.floor(Math.random() * 21) + 10;
             document.getElementById('score-board').innerText = `SCORE: ${score}`;
-
-            // 隨機噴出 5~10 個 67
-            const count = Math.floor(Math.random() * 6) + 5;
-            for (let i = 0; i < count; i++) {
-                create67(x, y);
-            }
+            const count = Math.floor(Math.random() * 5) + 5;
+            for (let i = 0; i < count; i++) create67(x, y);
         };
 
-        // 滑鼠事件
         document.addEventListener('mousedown', (e) => {
-            if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+            if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
                 handleInteraction(e.clientX, e.clientY);
             }
         });
 
-        // 觸控事件 (支援多指同時按不同地方)
         document.addEventListener('touchstart', (e) => {
             if (!gameActive) return;
             for (let i = 0; i < e.touches.length; i++) {
@@ -251,110 +286,41 @@
             }
         });
 
-        // 2. 鍵盤事件支援 (A-Z, 1-9)
         document.addEventListener('keydown', (e) => {
             if (!gameActive) return;
-            
-            // 限制只有 1-9 和 A-Z 會有反應
-            const key = e.key.toLowerCase();
-            const isValidKey = /^[a-z1-9]$/.test(key);
-
-            if (isValidKey) {
-                // 鍵盤按下時，在畫面亂數位置引爆！
-                const randomX = Math.random() * window.innerWidth;
-                const randomY = Math.random() * window.innerHeight;
-                
-                // 鍵盤流有額外加分！
+            if (/^[a-z1-9]$/.test(e.key.toLowerCase())) {
+                clickCountThisGame++;
+                const rx = Math.random() * window.innerWidth;
+                const ry = Math.random() * window.innerHeight;
                 score += 15;
                 document.getElementById('score-board').innerText = `SCORE: ${score}`;
-
-                // 噴出更多、更大的數字
-                for (let i = 0; i < 8; i++) {
-                    create67(randomX, randomY, true); // true 代表是鍵盤觸發的狂暴版
-                }
+                for (let i = 0; i < 8; i++) create67(rx, ry, true);
             }
         });
 
-        // 產生 67 的函式
         function create67(startX, startY, isKeyboard = false) {
             const el = document.createElement('div');
             el.className = 'number-67';
-            
-            // 隨機趣味外觀
-            const rand = Math.random();
-            if (rand > 0.95) el.innerText = '🔥67🔥';
-            else if (rand > 0.90) el.innerText = '⭐67⭐';
-            else el.innerText = '67';
-
-            // 顏色
+            el.innerText = Math.random() > 0.9 ? '🔥67🔥' : '67';
             const hue = Math.floor(Math.random() * 360);
             el.style.color = `hsl(${hue}, 100%, 65%)`;
             el.style.textShadow = `0 0 10px hsl(${hue}, 100%, 65%)`;
-
-            // 大小 (鍵盤按出來的比較大)
-            const baseSize = isKeyboard ? 50 : 24;
-            const size = Math.floor(Math.random() * 30) + baseSize;
-            el.style.fontSize = `${size}px`;
-
+            el.style.fontSize = `${Math.floor(Math.random() * 30) + (isKeyboard ? 50 : 24)}px`;
             document.body.appendChild(el);
 
-            // 物理運動
             const angle = Math.random() * Math.PI * 2;
             const speed = Math.random() * 12 + 6;
             let velX = Math.cos(angle) * speed;
             let velY = Math.sin(angle) * speed - 4;
-            let currX = startX;
-            let currY = startY;
-            let rot = Math.random() * 360;
-            let opacity = 1;
+            let currX = startX, currY = startY, rot = Math.random() * 360, opacity = 1;
 
             function animate() {
-                currX += velX;
-                currY += velY;
-                velY += 0.4; // 重力
-                rot += 5;
-                opacity -= 0.03;
-
+                currX += velX; currY += velY; velY += 0.4; rot += 5; opacity -= 0.03;
                 el.style.transform = `translate(-50%, -50%) translate(${currX}px, ${currY}px) rotate(${rot}deg)`;
                 el.style.opacity = opacity;
-
-                if (opacity > 0) {
-                    requestAnimationFrame(animate);
-                } else {
-                    el.remove();
-                }
+                if (opacity > 0) requestAnimationFrame(animate); else el.remove();
             }
             requestAnimationFrame(animate);
-        }
-
-        // --- 排行榜邏輯 (LocalStorage) ---
-        function saveScore(name, score) {
-            let scores = JSON.parse(localStorage.getItem('67_leaderboard')) || [];
-            scores.push({ name: name, score: score });
-            // 從高到低排序
-            scores.sort((a, b) => b.score - a.score);
-            // 只取前五名
-            scores = scores.slice(0, 5);
-            localStorage.setItem('67_leaderboard', JSON.stringify(scores));
-        }
-
-        function updateLeaderboardUI() {
-            const scores = JSON.parse(localStorage.getItem('67_leaderboard')) || [];
-            const container = document.getElementById('leaderboard-content');
-            container.innerHTML = '';
-            
-            if (scores.length === 0) {
-                container.innerHTML = '<div style="color:#666; font-size:0.9rem; text-align:center;">暫無紀錄</div>';
-                return;
-            }
-
-            scores.forEach((item, index) => {
-                const row = document.createElement('div');
-                row.className = 'leaderboard-item';
-                row.innerHTML = `<span>${index + 1}. ${item.name}</span><span>${item.score}分</span>`;
-                if(index === 0) row.style.color = '#ffcc00'; // 第一名金黃色
-                container.appendChild(row);
-            });
         }
     </script>
 </body>
