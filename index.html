@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=index.html">
+    <title>隨機 67 產生器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-color: #121212; /* 深色背景讓彩色數字更明顯 */
+            overflow: hidden;
+            position: relative;
+            user-select: none; /* 防止頻繁點擊時選取到文字 */
+            cursor: pointer;
+        }
+        /* 提示字 */
+        .tip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #555;
+            font-family: sans-serif;
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
+        /* 動態生成的 67 樣式 */
+        .number-67 {
+            position: absolute;
+            font-weight: bold;
+            font-family: 'Arial', sans-serif;
+            pointer-events: none; /* 讓點擊事件可以穿透數字 */
+            animation: popOut 1s ease-out forwards;
+        }
+
+        /* 彈出並淡出的動畫 */
+        @keyframes popOut {
+            0% {
+                transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1) rotate(var(--rand-deg));
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tip">點擊畫面任意地方</div>
+
+    <script>
+        document.addEventListener('click', (e) => {
+            // 移除提示字
+            const tip = document.querySelector('.tip');
+            if (tip) tip.remove();
+
+            // 隨機決定這次點擊要跑出幾個「67」（例如：3 到 8 個）
+            const count = Math.floor(Math.random() * 6) + 3; 
+
+            for (let i = 0; i < count; i++) {
+                create67(e.clientX, e.clientY);
+            }
+        });
+
+        function create67(x, y) {
+            const el = document.createElement('div');
+            el.className = 'number-67';
+            el.innerText = '67';
+
+            // 1. 隨機顏色 (HSL 模式更容易產生鮮豔的顏色)
+            const hue = Math.floor(Math.random() * 360);
+            el.style.color =
